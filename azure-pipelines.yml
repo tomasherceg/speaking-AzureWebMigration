@@ -17,7 +17,7 @@ steps:
   inputs:
     command: 'publish'
     publishWebProjects: false
-    arguments: -o $(Build.ArtifactStagingDirectory) --self-contained
+    arguments: -o $(Build.ArtifactStagingDirectory) --self-contained -r win-x86
     projects: |
       src/PhotoGallery/PhotoGallery.App/PhotoGallery.App.csproj
       src/PhotoGallery/PhotoGallery.Worker/PhotoGallery.Worker.csproj
