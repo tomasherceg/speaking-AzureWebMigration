@@ -1,0 +1,25 @@
+﻿@viewModel PhotoGallery.App.ViewModels.GalleryViewModel, PhotoGallery.App
+@masterPage Views/MasterPage.dotmaster
+
+<dot:Content ContentPlaceHolderID="MainContent">
+
+    <dot:Repeater DataSource="{value: Photos}">
+        <figure class="figure">
+            <img class="figure-img img-fluid rounded" style="max-height: 200px" 
+                 src="{value: IsProcessed ? ("/photo/" + Id) : "https://via.placeholder.com/150"}"
+                 alt="{value: FileName}">
+            <figcaption class="figure-caption">
+                <div>{{value: FileName}}</div>
+                <div Visible="{value: IsProcessed}">
+                    {{value: Width}}x{{value: Height}}
+                </div>
+                <div Visible="{value: !IsProcessed}">
+                    processing...
+                </div>
+            </figcaption>
+        </figure>
+        
+    </dot:Repeater>
+
+</dot:Content>
+

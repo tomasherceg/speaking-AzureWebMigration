@@ -1,0 +1,22 @@
+﻿@viewModel PhotoGallery.App.ViewModels.MasterPageViewModel, PhotoGallery.App
+<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Photo Gallery</title>
+    <link href="~/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="~/bootstrap/js/bootstrap.min.js"></script>
+</head>
+<body>
+ 	
+    <div class="container">
+        <div class="jumbotron">
+            <h1><dot:RouteLink RouteName="Default">Photo Gallery</dot:RouteLink></h1>
+        </div>
+
+        <dot:ContentPlaceHolder ID="MainContent" />
+    </div>
+
+</body>
+</html>

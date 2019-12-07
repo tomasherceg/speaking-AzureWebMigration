@@ -1,0 +1,28 @@
+﻿@viewModel PhotoGallery.App.ViewModels.CreateGalleryViewModel, PhotoGallery.App
+@masterPage Views/MasterPage.dotmaster
+
+<dot:Content ContentPlaceHolderID="MainContent">
+
+    <form>
+        <div class="form-group">
+            <label>Title</label>
+            <dot:TextBox class="form-control" Text="{value: Title}" />
+        </div>
+        <div class="form-group">
+            <label>Photos</label>
+            <dot:FileUpload UploadedFiles="{value: Files}" 
+                            AllowMultipleFiles="true"
+                            AllowedFileTypes="image/jpeg;image/png"/>
+        </div>
+        <div class="form-group">
+            <dot:Button Text="Create" 
+                        class="btn btn-primary"
+                        PostBack.Concurrency="Deny"
+                        Enabled="{value: Files.Files.Count > 0 && !Files.IsBusy}" 
+                        Click="{command: CreateGallery()}"/>
+        </div>
+    </form>
+
+
+</dot:Content>
+
