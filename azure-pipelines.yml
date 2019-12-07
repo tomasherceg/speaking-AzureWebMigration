@@ -17,9 +17,19 @@ steps:
   inputs:
     command: 'publish'
     publishWebProjects: false
-    arguments: -o $(Build.ArtifactStagingDirectory) --self-contained -r win-x86
+    zipAfterPublish: false
+    modifyOutputPath: false
+    arguments: -o $(Build.ArtifactStagingDirectory)/app --self-contained -r win-x86
     projects: |
       src/PhotoGallery/PhotoGallery.App/PhotoGallery.App.csproj
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'publish'
+    publishWebProjects: false
+    zipAfterPublish: false
+    arguments: -o $(Build.ArtifactStagingDirectory)/app/app_data/Jobs/Continuous/PhotoGallery.Worker --self-contained -r win-x86
+    projects: |
       src/PhotoGallery/PhotoGallery.Worker/PhotoGallery.Worker.csproj
 
 - task: PublishBuildArtifacts@1
