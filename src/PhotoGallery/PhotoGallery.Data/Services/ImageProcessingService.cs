@@ -23,26 +23,15 @@ namespace PhotoGallery.Data.Services
             this.photoStorageService = photoStorageService;
         }
 
-        public async Task ProcessImages()
+        public async Task ProcessImage(Guid id)
         {
-            while (true)
+            var unprocessedPhoto = await dbContext.Photos.FirstOrDefaultAsync(p => p.Id == id);
+            if (unprocessedPhoto.ProcessedDate != null)
             {
-                // get first unprocessed photo
-                var unprocessedPhoto = await dbContext.Photos.FirstOrDefaultAsync(p => p.ProcessedDate == null);
-                if (unprocessedPhoto == null)
-                {
-                    Console.WriteLine("No unprocessed photos for this moment...");
-                    return;
-                }
-
-                // process the photo
-                Console.WriteLine($"Processing photo {unprocessedPhoto.Id}...");
-                await ProcessImage(unprocessedPhoto);
+                return;
             }
-        }
 
-        private async Task ProcessImage(Photo unprocessedPhoto)
-        {
+            Console.WriteLine($"Processing photo {unprocessedPhoto.Id}...");
             try
             {
                 using (var image = await LoadImageAsync(unprocessedPhoto.Id, photoStorageService))

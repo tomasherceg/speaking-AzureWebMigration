@@ -1,6 +1,7 @@
 ﻿using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using PhotoGallery.Data.Services;
+using System;
 using System.Threading.Tasks;
 
 namespace PhotoGallery.Worker
@@ -14,9 +15,10 @@ namespace PhotoGallery.Worker
             this.imageProcessingService = imageProcessingService;
         }
 
-        public async Task Run([TimerTrigger("0 * * * * *")] TimerInfo timerInfo, ILogger log)
+        public async Task ProcessPhoto([QueueTrigger("newphotos", Connection = "BlobStorage")] string message, ILogger log)
         {
-            await imageProcessingService.ProcessImages();
+            var photoId = new Guid(message);
+            await imageProcessingService.ProcessImage(photoId);
         }
     }
 }

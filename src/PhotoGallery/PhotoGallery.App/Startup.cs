@@ -48,6 +48,9 @@ namespace PhotoGallery.App
                 //provider => new FileSystemPhotoStorageService(Path.Combine(env.ContentRootPath, "wwwroot/Photos"))
                 provider => new AzureBlobPhotoStorageService(Configuration.GetConnectionString("BlobStorage"), "photos")
             );
+            services.AddSingleton<NewPhotoNotificiationService>(
+                provider => new NewPhotoNotificiationService(Configuration.GetConnectionString("BlobStorage"), "newphotos")
+            );
 
             services.AddEntityFrameworkSqlServer()
                 .AddDbContext<AppDbContext>(options =>

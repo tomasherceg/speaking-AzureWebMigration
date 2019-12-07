@@ -13,11 +13,13 @@ namespace PhotoGallery.Data.Services
     {
         private readonly AppDbContext dbContext;
         private readonly IPhotoStorageService photoStorageService;
+        private readonly NewPhotoNotificiationService newPhotoNotificiationService;
 
-        public GalleryService(AppDbContext dbContext, IPhotoStorageService photoStorageService)
+        public GalleryService(AppDbContext dbContext, IPhotoStorageService photoStorageService, NewPhotoNotificiationService newPhotoNotificiationService)
         {
             this.dbContext = dbContext;
             this.photoStorageService = photoStorageService;
+            this.newPhotoNotificiationService = newPhotoNotificiationService;
         }
 
         public Task<List<GalleryListDTO>> GetGalleries()
@@ -69,6 +71,7 @@ namespace PhotoGallery.Data.Services
                 gallery.Photos.Add(photo);
 
                 await photoStorageService.StorePhoto(photo.Id, photoData.Stream);
+                await newPhotoNotificiationService.NotifyNewPhotoUploaded(photo.Id);
             }
 
             dbContext.Galleries.Add(gallery);

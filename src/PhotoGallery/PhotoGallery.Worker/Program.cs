@@ -18,6 +18,7 @@ namespace PhotoGallery.Worker
             builder.ConfigureWebJobs(b =>
                 {
                     b.AddAzureStorageCoreServices();
+                    b.AddAzureStorage();
                     b.AddTimers();
                 })
                 .ConfigureAppConfiguration(config =>
