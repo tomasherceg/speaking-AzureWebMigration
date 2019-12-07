@@ -70,7 +70,7 @@ namespace PhotoGallery.Data.Services
                 // invalid photo - remove it
                 dbContext.Photos.Remove(unprocessedPhoto);
 
-                Console.WriteLine($"Error processing photo.");
+                Console.WriteLine($"Error processing photo. {ex}");
             }
 
             await dbContext.SaveChangesAsync();

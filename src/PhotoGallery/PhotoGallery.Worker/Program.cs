@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using PhotoGallery.Data.Model;
 using PhotoGallery.Data.Services;
 using System;
@@ -13,44 +14,42 @@ namespace PhotoGallery.Worker
     {
         static async Task Main(string[] args)
         {
-            var services = new ServiceCollection();
-            ConfigureServices(services);
-            var serviceProvider = services.BuildServiceProvider();
-
-            await RunWorker(serviceProvider.GetService<IServiceScopeFactory>());
-        }
-
-        private static void ConfigureServices(ServiceCollection services)
-        {
-            var config = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json")
-                .AddEnvironmentVariables()
-                .Build();
-
-            var photosDirectory = config.GetSection("AppSettings").GetValue<string>("PhotosDirectory");
-
-            services.AddScoped<ImageProcessingService>();
-            services.AddSingleton<IPhotoStorageService>(
-                provider => new PhotoStorageService(photosDirectory));
-
-            services.AddEntityFrameworkSqlServer()
-                .AddDbContext<AppDbContext>(options =>
+            var builder = new HostBuilder();
+            builder.ConfigureWebJobs(b =>
                 {
-                    options.UseSqlServer(config.GetConnectionString("Sql"));
-                });
-        }
+                    b.AddAzureStorageCoreServices();
+                    b.AddTimers();
+                })
+                .ConfigureAppConfiguration(config =>
+                {
+                    config.AddJsonFile("appsettings.json");
+                    config.AddEnvironmentVariables();
+                })
+                .ConfigureServices((context, services) =>
+                {
+                    var config = context.Configuration;
 
-        private static async Task RunWorker(IServiceScopeFactory serviceScopeFactory)
-        {
-            while (true)
+                    services.AddSingleton(config);
+                    services.AddMemoryCache();
+
+                    var photosDirectory = config.GetSection("AppSettings").GetValue<string>("PhotosDirectory");
+                    
+                    services.AddScoped<ImageProcessingService>();
+                    services.AddSingleton<IPhotoStorageService>(
+                        provider => new PhotoStorageService(photosDirectory));
+
+                    services.AddEntityFrameworkSqlServer()
+                        .AddDbContext<AppDbContext>(options =>
+                        {
+                            options.UseSqlServer(config.GetConnectionString("Sql"));
+                        });
+                })
+                .UseConsoleLifetime();
+
+            var host = builder.Build();
+            using (host)
             {
-                using (var scope = serviceScopeFactory.CreateScope())
-                {
-                    var processingService = scope.ServiceProvider.GetService<ImageProcessingService>();
-                    await processingService.ProcessImages();
-                };
-
-                await Task.Delay(30000);
+                await host.RunAsync();
             }
         }
 
