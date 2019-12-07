@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace PhotoGallery.Data.Services
 {
-    public class PhotoStorageService : IPhotoStorageService
+    public class FileSystemPhotoStorageService : IPhotoStorageService
     {
         private readonly string directory;
 
-        public PhotoStorageService(string directory)
+        public FileSystemPhotoStorageService(string directory)
         {
             if (!Directory.Exists(directory))
             {

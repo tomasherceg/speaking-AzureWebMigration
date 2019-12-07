@@ -36,7 +36,9 @@ namespace PhotoGallery.Worker
                     
                     services.AddScoped<ImageProcessingService>();
                     services.AddSingleton<IPhotoStorageService>(
-                        provider => new PhotoStorageService(photosDirectory));
+                        //provider => new FileSystemPhotoStorageService(photosDirectory)
+                        provider => new AzureBlobPhotoStorageService(config.GetConnectionString("BlobStorage"), "photos")
+                    );
 
                     services.AddEntityFrameworkSqlServer()
                         .AddDbContext<AppDbContext>(options =>
