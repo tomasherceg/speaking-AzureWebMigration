@@ -1,0 +1,29 @@
+trigger:
+- master
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  buildConfiguration: 'Release'
+
+steps:
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'build'
+    projects: '**/*.csproj'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'publish'
+    publishWebProjects: false
+    arguments: -o $(Build.ArtifactStagingDirectory)
+    projects: |
+      src/PhotoGallery/PhotoGallery.App/PhotoGallery.App.csproj
+      src/PhotoGallery/PhotoGallery.Worker/PhotoGallery.Worker.csproj
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
