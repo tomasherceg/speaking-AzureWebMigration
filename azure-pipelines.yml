@@ -28,6 +28,7 @@ steps:
     command: 'publish'
     publishWebProjects: false
     zipAfterPublish: false
+    modifyOutputPath: false
     arguments: -o $(Build.ArtifactStagingDirectory)/app/app_data/Jobs/Continuous/PhotoGallery.Worker --self-contained -r win-x86
     projects: |
       src/PhotoGallery/PhotoGallery.Worker/PhotoGallery.Worker.csproj
