@@ -26,6 +26,7 @@ namespace PhotoGallery.App
         {
             Configuration = new ConfigurationBuilder()
                 .AddJsonFile(Path.Combine(env.ContentRootPath, "appsettings.json"))
+                .AddEnvironmentVariables()
                 .Build();
             this.env = env;
         }

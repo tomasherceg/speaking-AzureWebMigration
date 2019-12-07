@@ -23,8 +23,9 @@ namespace PhotoGallery.Worker
         private static void ConfigureServices(ServiceCollection services)
         {
             var config = new ConfigurationBuilder()
-                            .AddJsonFile("appsettings.json")
-                            .Build();
+                .AddJsonFile("appsettings.json")
+                .AddEnvironmentVariables()
+                .Build();
 
             var photosDirectory = config.GetSection("AppSettings").GetValue<string>("PhotosDirectory");
 
