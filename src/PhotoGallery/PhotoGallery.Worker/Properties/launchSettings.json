@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "PhotoGallery.Worker": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}
