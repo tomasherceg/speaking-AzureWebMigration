@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: photogalleryapp
+spec:
+  replicas: 1
+  minReadySeconds: 5
+  selector:
+    matchLabels:
+      app: photogalleryapp
+  template:
+    metadata:
+      labels:
+        app: photogalleryapp
+    spec:
+      containers:
+        - name: photogalleryapp
+          image: galleryazmregistry.azurecr.io/photogalleryapp:{VERSION}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+            - name: ConnectionStrings__Cosmos
+              valueFrom:
+                secretKeyRef: 
+                  name: photogallerysecrets
+                  key: Cosmos
+            - name: ConnectionStrings__BlobStorage
+              valueFrom:
+                secretKeyRef: 
+                  name: photogallerysecrets
+                  key: BlobStorage
+      imagePullSecrets:
+        - name: galleryazmregistry
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: photogalleryapp
+spec:
+  selector:
+    app: photogalleryapp
+  ports:
+  - port: 80
+    targetPort: 80
+  type: LoadBalancer
