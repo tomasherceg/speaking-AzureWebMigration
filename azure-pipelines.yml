@@ -36,8 +36,9 @@ stages:
         dockerComposeFile: 'src/PhotoGallery/docker-compose.yml'
         dockerComposeCommand: 'build'
         additionalImageTags: $(tag)
+        includeLatestTag: true
         qualifyImageNames: true
-        action: 'Run a Docker Compose command'  
+        action: 'Build services'
     - task: DockerCompose@0
       inputs:
         containerregistrytype: 'Azure Container Registry'
@@ -46,8 +47,9 @@ stages:
         dockerComposeFile: 'src/PhotoGallery/docker-compose.yml'
         dockerComposeCommand: 'push'
         additionalImageTags: $(tag)
+        includeLatestTag: true
         qualifyImageNames: true
-        action: 'Run a Docker Compose command'          
+        action: 'Push services'
     - task: PublishPipelineArtifact@1
       inputs:
         artifactName: 'manifests'
