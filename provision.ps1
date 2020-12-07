@@ -1,6 +1,7 @@
 $resourceGroupName = "speaking-cloud-native"
 $resourceGroupName2 = "speaking-cloud-native2"
 $subscriptionName = "Subscription 19"
+$accountName = "rigantigallerydemo"
 
 # Login
 az login
@@ -10,37 +11,23 @@ az account set --subscription $subscriptionName
 az group create -n $resourceGroupName -l WestEurope 
 az group create -n $resourceGroupName2 -l WestEurope 
 
+
+
 ## PART 1
 
-# Create app service plan
-az appservice plan create -n "gallery-plan" -g $resourceGroupName -l WestEurope --sku S1 
+# Create Cosmos DB instance
+az cosmosdb create --name $accountName --resource-group $resourceGroupName --enable-free-tier true --enable-public-network true --locations regionname=WestEurope 
 
-# Create app service
-az webapp create -g $resourceGroupName -p "gallery-plan" -n "gallery-app"
-az webapp config appsettings set -g $resourceGroupName -n "gallery-app" --settings AppSettings:PhotosDirectory=D:\home\site\wwwroot\wwwroot\Photos
+az cosmosdb sql database create --account-name $accountName --resource-group $resourceGroupName --name photogallery --throughput 400
+az cosmosdb sql container create --account-name $accountName --resource-group $resourceGroupName --database-name photogallery --name galleries --partition-key-path /id
+az cosmosdb sql container create --account-name $accountName --resource-group $resourceGroupName --database-name photogallery --name photos --partition-key-path /galleryId
 
-# Create storage account
-az storage account create -g $resourceGroupName -n "galleryazmstorage" -l WestEurope --sku Standard_LRS 
+# Create Azure Storage
 
-# TODO: deploy the apps from Visual Studio
-# TODO: specify correct connection string in the portal
+az storage account create --name $accountName --resource-group $resourceGroupName --location westeurope --sku Standard_LRS
 
 
 ## PART 2
-
-# Create SQL Server and allow Azure services through firewall
-az sql server create -g $resourceGroupName -l WestEurope -n "gallery-sql" -u AzureMigration -p 8jLmj7Z7LKetGdrf
-az sql server firewall-rule create -g $resourceGroupName -s "gallery-sql" -n "azureaccessrule" --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0
-
-# TODO: migrate the database from SQL Server Management Studio
-
-
-## PART 3
-
-# TODO: configure DevOps pipeline
-
-
-## PART 4
 
 # Create Container Registry, get password and login in Docker client
 az acr create -g $resourceGroupName2 -l WestEurope -n "galleryazmregistry" --admin-enabled true --sku Standard
@@ -61,20 +48,13 @@ docker tag photogalleryworker:latest galleryazmregistry.azurecr.io/photogalleryw
 docker push galleryazmregistry.azurecr.io/photogalleryapp:$containerVersion
 docker push galleryazmregistry.azurecr.io/photogalleryworker:$containerVersion
 
-# Create Linux App Service plan
-az appservice plan create -n "gallery-plan-linux" -g $resourceGroupName2 -l WestEurope --sku S1 --is-linux
-
-# Create Linux Web App
-az webapp create -g $resourceGroupName2 -p "gallery-plan-linux" -n "gallery-app-linux" -i galleryazmregistry.azurecr.io/photogalleryapp:$containerVersion
-
-# TODO: set connection strings
 
 
-## PART 5
+## PART 3
 
 # Setup Kubernetes cluster
 az aks get-versions -l WestEurope 
-az aks create -g $resourceGroupName2 -l WestEurope -n "galleryazmkube" --node-count 1 --node-vm-size Standard_B2ms --node-osdisk-size 32 --generate-ssh-keys --kubernetes-version 1.14.8
+az aks create -g $resourceGroupName2 -l WestEurope -n "galleryazmkube" --node-count 1 --node-vm-size Standard_B2ms --node-osdisk-size 32 --generate-ssh-keys --kubernetes-version 1.19.3
 
 # Map kubectl to Azure cluster
 az aks get-credentials -g $resourceGroupName2 -n "galleryazmkube" --overwrite-existing
