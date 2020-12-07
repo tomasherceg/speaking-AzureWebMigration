@@ -1,19 +1,65 @@
 apiVersion : apps/v1
 kind: Deployment
 metadata:
-  name: tomashercegspeakingazurewebmigration 
+  name: photogalleryapp 
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: tomashercegspeakingazurewebmigration
+      app: photogalleryapp
   template:
     metadata:
       labels:
-        app: tomashercegspeakingazurewebmigration 
+        app: photogalleryapp 
     spec:
       containers:
-        - name: tomashercegspeakingazurewebmigration 
-          image: galleryazmregistry.azurecr.io/tomashercegspeakingazurewebmigration
+        - name: photogalleryapp 
+          image: galleryazmregistry.azurecr.io/photogalleryapp
           ports:
-          - containerPort: 80
+            - containerPort: 80
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+            - name: ConnectionStrings__Cosmos
+              valueFrom:
+                secretKeyRef: 
+                  name: photogallerysecrets
+                  key: Cosmos
+            - name: ConnectionStrings__BlobStorage
+              valueFrom:
+                secretKeyRef: 
+                  name: photogallerysecrets
+                  key: BlobStorage
+---
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: photogalleryworker 
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: photogalleryworker
+  template:
+    metadata:
+      labels:
+        app: photogalleryworker 
+    spec:
+      containers:
+        - name: photogalleryworker 
+          image: galleryazmregistry.azurecr.io/photogalleryworker
+          ports:
+            - containerPort: 80
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+            - name: ConnectionStrings__Cosmos
+              valueFrom:
+                secretKeyRef: 
+                  name: photogallerysecrets
+                  key: Cosmos
+            - name: ConnectionStrings__BlobStorage
+              valueFrom:
+                secretKeyRef: 
+                  name: photogallerysecrets
+                  key: BlobStorage
