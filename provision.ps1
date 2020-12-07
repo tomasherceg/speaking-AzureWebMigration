@@ -1,6 +1,6 @@
-$resourceGroupName = "speaking-azure-migration"
-$resourceGroupName2 = "speaking-azure-migration2"
-$subscriptionName = "Subscription 18"
+$resourceGroupName = "speaking-cloud-native"
+$resourceGroupName2 = "speaking-cloud-native2"
+$subscriptionName = "Subscription 19"
 
 # Login
 az login

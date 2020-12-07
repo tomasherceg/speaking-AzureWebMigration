@@ -16,7 +16,7 @@ namespace PhotoGallery.App.ViewModels
         public List<PhotoListDTO> Photos { get; set; }
 
         [FromRoute("id")]
-        public int GalleryId { get; set; }
+        public string GalleryId { get; set; }
 
 
         public GalleryViewModel(GalleryService galleryService)

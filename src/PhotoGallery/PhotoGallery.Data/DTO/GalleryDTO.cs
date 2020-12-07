@@ -7,7 +7,7 @@ namespace PhotoGallery.Data.DTO
     public class GalleryListDTO
     {
 
-        public int Id { get; set; }
+        public string Id { get; set; }
 
         public string Title { get; set; }
 
@@ -15,9 +15,11 @@ namespace PhotoGallery.Data.DTO
 
         public int PhotosCount { get; set; }
 
-        public bool IsProcessed { get; set; }
+        public int ProcessedPhotosCount { get; set; }
 
-        public Guid? ThumbnailPhotoId { get; set; }
+        public bool IsProcessed => PhotosCount == ProcessedPhotosCount;
+
+        public string ThumbnailPhotoId { get; set; }
 
     }
 }

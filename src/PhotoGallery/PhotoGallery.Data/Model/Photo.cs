@@ -5,11 +5,9 @@ namespace PhotoGallery.Data.Model
     public class Photo
     {
 
-        public Guid Id { get; set; }
+        public string Id { get; set; }
 
-        public int GalleryId { get; set; }
-
-        public virtual Gallery Gallery { get; set; }
+        public string GalleryId { get; set; }
 
         public string FileName { get; set; }
 

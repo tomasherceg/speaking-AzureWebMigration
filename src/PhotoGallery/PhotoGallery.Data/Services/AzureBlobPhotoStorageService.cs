@@ -21,13 +21,13 @@ namespace PhotoGallery.Data.Services
             container.CreateIfNotExists(BlobContainerPublicAccessType.Off);
         }
 
-        public Task<Stream> GetPhoto(Guid id)
+        public Task<Stream> GetPhoto(string id)
         {
             var blob = container.GetBlockBlobReference(id + ".bin");
             return blob.OpenReadAsync();
         }
 
-        public Task StorePhoto(Guid id, Stream stream)
+        public Task StorePhoto(string id, Stream stream)
         {
             var blob = container.GetBlockBlobReference(id + ".bin");
             return blob.UploadFromStreamAsync(stream);

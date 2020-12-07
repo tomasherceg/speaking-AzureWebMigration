@@ -10,9 +10,12 @@ using DotVVM.Framework.Hosting;
 using DotVVM.Framework.Routing;
 using PhotoGallery.Data.Services;
 using PhotoGallery.Data.Model;
-using Microsoft.EntityFrameworkCore;
 using System.IO;
 using PhotoGallery.App.Presenters;
+using Microsoft.Azure.Cosmos;
+using PhotoGallery.Data.Configuration;
+using Microsoft.Extensions.Options;
+using Microsoft.Azure.Cosmos.Fluent;
 
 namespace PhotoGallery.App
 {
@@ -52,11 +55,13 @@ namespace PhotoGallery.App
                 provider => new NewPhotoNotificiationService(Configuration.GetConnectionString("BlobStorage"), "newphotos")
             );
 
-            services.AddEntityFrameworkSqlServer()
-                .AddDbContext<AppDbContext>(options =>
-                {
-                    options.UseSqlServer(Configuration.GetConnectionString("Sql"));
-                });
+            services.Configure<CosmosOptions>(Configuration.GetSection("Cosmos"));
+            services.AddSingleton<CosmosClient>(new CosmosClientBuilder(
+                    Configuration.GetConnectionString("Cosmos"))
+                    .WithSerializerOptions(new CosmosSerializationOptions
+                    {
+                        PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase
+                    }).Build());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

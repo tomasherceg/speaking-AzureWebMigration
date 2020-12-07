@@ -17,7 +17,7 @@
             <div class="media-body">
                 <h5 class="mt-0 mb-1">{{value: Title}}</h5>
                 <p>
-                    Number of photos: {{value: PhotosCount}}
+                    Processed: {{value: ProcessedPhotosCount}} / {{value: PhotosCount}}
                     <br />
                     Created: {{value: CreatedDate.ToString("d")}}
                 </p>

@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using PhotoGallery.Data.Model;
+﻿using PhotoGallery.Data.Model;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -9,23 +8,32 @@ using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System.IO;
+using Microsoft.Azure.Cosmos;
+using Microsoft.Extensions.Options;
+using PhotoGallery.Data.Configuration;
+using System.Linq;
+using Microsoft.Azure.Cosmos.Linq;
 
 namespace PhotoGallery.Data.Services
 {
     public class ImageProcessingService
     {
-        private readonly AppDbContext dbContext;
         private readonly IPhotoStorageService photoStorageService;
 
-        public ImageProcessingService(AppDbContext dbContext, IPhotoStorageService photoStorageService)
+        private readonly Container galleriesContainer;
+        private readonly Container photosContainer;
+
+        public ImageProcessingService(CosmosClient client, IOptions<CosmosOptions> options, IPhotoStorageService photoStorageService)
         {
-            this.dbContext = dbContext;
+            this.galleriesContainer = client.GetContainer(options.Value.DatabaseId, "galleries");
+            this.photosContainer = client.GetContainer(options.Value.DatabaseId, "photos");
+
             this.photoStorageService = photoStorageService;
         }
 
-        public async Task ProcessImage(Guid id)
+        public async Task ProcessImage(string id, string galleryId)
         {
-            var unprocessedPhoto = await dbContext.Photos.FirstOrDefaultAsync(p => p.Id == id);
+            var unprocessedPhoto = (await photosContainer.ReadItemAsync<Photo>(id, new PartitionKey(galleryId))).Resource;
             if (unprocessedPhoto.ProcessedDate != null)
             {
                 return;
@@ -51,22 +59,29 @@ namespace PhotoGallery.Data.Services
                     unprocessedPhoto.Height = image.Height;
                     unprocessedPhoto.ProcessedDate = DateTime.UtcNow;
 
-                    Console.WriteLine($"Photo processed successfully");
+                    await photosContainer.UpsertItemAsync<Photo>(unprocessedPhoto);
+                    
+                    var gallery = (await galleriesContainer.ReadItemAsync<Gallery>(galleryId, new PartitionKey(galleryId))).Resource;
+                    gallery.ProcessedPhotosCount++;
+                    if (gallery.ThumbnailPhotoId == null)
+                    {
+                        gallery.ThumbnailPhotoId = unprocessedPhoto.Id;
+                    }
+                    await galleriesContainer.UpsertItemAsync<Gallery>(gallery);
+
+                    Console.WriteLine($"Photo processed successfully.");
                 }
             }
             catch (Exception ex)
             {
                 // invalid photo - remove it
-                dbContext.Photos.Remove(unprocessedPhoto);
+                await photosContainer.DeleteItemAsync<Photo>(id, new PartitionKey(galleryId));
 
                 Console.WriteLine($"Error processing photo. {ex}");
             }
-
-            await dbContext.SaveChangesAsync();
         }
 
-
-        private async Task<Image<Rgba32>> LoadImageAsync(Guid id, IPhotoStorageService photoStorageService)
+        private async Task<Image<Rgba32>> LoadImageAsync(string id, IPhotoStorageService photoStorageService)
         {
             using (var inputStream = await photoStorageService.GetPhoto(id))
             {

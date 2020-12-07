@@ -1,5 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos.Linq;
+using Microsoft.Extensions.Options;
+using PhotoGallery.Data.Configuration;
 using PhotoGallery.Data.DTO;
+using PhotoGallery.Data.Messages;
 using PhotoGallery.Data.Model;
 using System;
 using System.Collections.Generic;
@@ -11,36 +15,41 @@ namespace PhotoGallery.Data.Services
 {
     public class GalleryService
     {
-        private readonly AppDbContext dbContext;
+        private readonly Container galleriesContainer;
+        private readonly Container photosContainer;
+
         private readonly IPhotoStorageService photoStorageService;
         private readonly NewPhotoNotificiationService newPhotoNotificiationService;
 
-        public GalleryService(AppDbContext dbContext, IPhotoStorageService photoStorageService, NewPhotoNotificiationService newPhotoNotificiationService)
+        public GalleryService(CosmosClient client, IOptions<CosmosOptions> options, IPhotoStorageService photoStorageService, NewPhotoNotificiationService newPhotoNotificiationService)
         {
-            this.dbContext = dbContext;
+            this.galleriesContainer = client.GetContainer(options.Value.DatabaseId, "galleries");
+            this.photosContainer = client.GetContainer(options.Value.DatabaseId, "photos");
+
             this.photoStorageService = photoStorageService;
             this.newPhotoNotificiationService = newPhotoNotificiationService;
         }
 
         public Task<List<GalleryListDTO>> GetGalleries()
         {
-            return dbContext.Galleries
+            return galleriesContainer.GetItemLinqQueryable<Gallery>()
                 .Select(g => new GalleryListDTO()
                 {
                     Id = g.Id,
                     Title = g.Title,
                     CreatedDate = g.CreatedDate,
-                    PhotosCount = g.Photos.Count,
-                    IsProcessed = g.Photos.All(p => p.ProcessedDate != null),
-                    ThumbnailPhotoId = g.Photos.FirstOrDefault(p => p.ProcessedDate != null).Id
+                    PhotosCount = g.PhotosCount,
+                    ProcessedPhotosCount = g.ProcessedPhotosCount,
+                    ThumbnailPhotoId = g.ThumbnailPhotoId
                 })
                 .OrderByDescending(g => g.CreatedDate)
+                .ToFeedIterator()
                 .ToListAsync();
         }
 
-        public Task<List<PhotoListDTO>> GetPhotos(int galleryId)
+        public Task<List<PhotoListDTO>> GetPhotos(string galleryId)
         {
-            return dbContext.Photos
+            return photosContainer.GetItemLinqQueryable<Photo>()
                 .Where(p => p.GalleryId == galleryId)
                 .Select(g => new PhotoListDTO()
                 {
@@ -50,6 +59,7 @@ namespace PhotoGallery.Data.Services
                     Height = g.Height,
                     IsProcessed = g.ProcessedDate != null
                 })
+                .ToFeedIterator()
                 .ToListAsync();
         }
 
@@ -57,25 +67,26 @@ namespace PhotoGallery.Data.Services
         {
             var gallery = new Gallery()
             {
+                Id = Guid.NewGuid().ToString(),
                 Title = galleryData.Title,
-                CreatedDate = DateTime.UtcNow
+                CreatedDate = DateTime.UtcNow,
+                PhotosCount = galleryData.Photos.Count                
             };
 
             foreach (var photoData in galleryData.Photos)
             {
                 var photo = new Photo()
                 {
-                    Id = Guid.NewGuid(),
+                    Id = Guid.NewGuid().ToString(),
+                    GalleryId = gallery.Id,
                     FileName = photoData.FileName
                 };
-                gallery.Photos.Add(photo);
-
+                await photosContainer.CreateItemAsync(photo);
                 await photoStorageService.StorePhoto(photo.Id, photoData.Stream);
-                await newPhotoNotificiationService.NotifyNewPhotoUploaded(photo.Id);
+                await newPhotoNotificiationService.NotifyNewPhotoUploaded(new ProcessPhotoMessage() { Id = photo.Id, GalleryId = gallery.Id });
             }
 
-            dbContext.Galleries.Add(gallery);
-            await dbContext.SaveChangesAsync();
+            await galleriesContainer.CreateItemAsync(gallery);
         }
 
     }

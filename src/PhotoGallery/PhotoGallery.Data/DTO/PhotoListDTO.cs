@@ -7,7 +7,7 @@ namespace PhotoGallery.Data.DTO
     public class PhotoListDTO
     {
 
-        public Guid Id { get; set; }
+        public string Id { get; set; }
 
         public string FileName { get; set; }
 

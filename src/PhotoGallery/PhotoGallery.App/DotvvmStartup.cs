@@ -20,8 +20,8 @@ namespace PhotoGallery.App
         {
             config.RouteTable.Add("Default", "", "Views/Default.dothtml");
             config.RouteTable.Add("CreateGallery", "create", "Views/CreateGallery.dothtml");
-            config.RouteTable.Add("Gallery", "gallery/{id:int}", "Views/Gallery.dothtml");
-            config.RouteTable.Add("PhotoPresenter", "photo/{id:guid}", typeof(PhotoPresenter));
+            config.RouteTable.Add("Gallery", "gallery/{id}", "Views/Gallery.dothtml");
+            config.RouteTable.Add("PhotoPresenter", "photo/{id}", typeof(PhotoPresenter));
         }
 
         private void ConfigureControls(DotvvmConfiguration config, string applicationPath)

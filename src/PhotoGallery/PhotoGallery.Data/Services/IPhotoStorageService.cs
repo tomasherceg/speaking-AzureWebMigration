@@ -7,9 +7,9 @@ namespace PhotoGallery.Data.Services
     public interface IPhotoStorageService
     {
 
-        Task StorePhoto(Guid id, Stream stream);
+        Task StorePhoto(string id, Stream stream);
 
-        Task<Stream> GetPhoto(Guid id);
+        Task<Stream> GetPhoto(string id);
 
     }
 }

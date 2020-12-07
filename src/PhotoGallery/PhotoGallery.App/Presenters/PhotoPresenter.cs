@@ -18,7 +18,7 @@ namespace PhotoGallery.App.Presenters
 
         public async Task ProcessRequest(IDotvvmRequestContext context)
         {
-            var id = (Guid)context.Parameters["id"];
+            var id = (string)context.Parameters["id"];
             using (var stream = await photoStorageService.GetPhoto(id))
             {
                 context.HttpContext.Response.ContentType = "image/jpeg";

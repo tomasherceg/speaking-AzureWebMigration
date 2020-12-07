@@ -1,5 +1,7 @@
 ﻿using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Queue;
+using Newtonsoft.Json;
+using PhotoGallery.Data.Messages;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -20,9 +22,9 @@ namespace PhotoGallery.Data.Services
             queue.CreateIfNotExists();
         }
 
-        public async Task NotifyNewPhotoUploaded(Guid id)
+        public async Task NotifyNewPhotoUploaded(ProcessPhotoMessage message)
         {
-            await queue.AddMessageAsync(new CloudQueueMessage(id.ToString()));
+            await queue.AddMessageAsync(new CloudQueueMessage(JsonConvert.SerializeObject(message)));
         }
 
     }
