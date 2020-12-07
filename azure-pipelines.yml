@@ -34,6 +34,7 @@ stages:
         azureSubscription: 'Subscription 19(9abaf1c6-8cde-4160-b241-5275c07c9ada)'
         azureContainerRegistry: $(containerRegistry)
         dockerComposeFile: 'src/PhotoGallery/docker-compose.yml'
+        dockerComposeCommand: 'build'
         includeLatestTag: true
         additionalImageTags: $(tag)
         action: 'Run a Docker Compose command'
