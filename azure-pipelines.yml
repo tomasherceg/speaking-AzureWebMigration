@@ -34,9 +34,19 @@ stages:
         azureSubscription: 'Subscription 19(9abaf1c6-8cde-4160-b241-5275c07c9ada)'
         azureContainerRegistry: $(containerRegistry)
         dockerComposeFile: 'src/PhotoGallery/docker-compose.yml'
-        dockerComposeCommand: 'push'
+        dockerComposeCommand: 'build'
         includeLatestTag: true
         additionalImageTags: $(tag)
+        qualifyImageNames: true
+        action: 'Run a Docker Compose command'  
+    - task: DockerCompose@0
+      inputs:
+        containerregistrytype: 'Azure Container Registry'
+        azureSubscription: 'Subscription 19(9abaf1c6-8cde-4160-b241-5275c07c9ada)'
+        azureContainerRegistry: $(containerRegistry)
+        dockerComposeFile: 'src/PhotoGallery/docker-compose.yml'
+        dockerComposeCommand: 'push'
+        includeSourceTags: true
         action: 'Run a Docker Compose command'          
     - task: PublishPipelineArtifact@1
       inputs:
