@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: tomashercegspeakingazurewebmigration 
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tomashercegspeakingazurewebmigration
+  template:
+    metadata:
+      labels:
+        app: tomashercegspeakingazurewebmigration 
+    spec:
+      containers:
+        - name: tomashercegspeakingazurewebmigration 
+          image: galleryazmregistry.azurecr.io/tomashercegspeakingazurewebmigration
+          ports:
+          - containerPort: 80
