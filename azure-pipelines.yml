@@ -35,7 +35,6 @@ stages:
         azureContainerRegistry: $(containerRegistry)
         dockerComposeFile: 'src/PhotoGallery/docker-compose.yml'
         dockerComposeCommand: 'build'
-        includeLatestTag: true
         additionalImageTags: $(tag)
         qualifyImageNames: true
         action: 'Run a Docker Compose command'  
@@ -46,7 +45,8 @@ stages:
         azureContainerRegistry: $(containerRegistry)
         dockerComposeFile: 'src/PhotoGallery/docker-compose.yml'
         dockerComposeCommand: 'push'
-        includeSourceTags: true
+        additionalImageTags: $(tag)
+        qualifyImageNames: true
         action: 'Run a Docker Compose command'          
     - task: PublishPipelineArtifact@1
       inputs:
