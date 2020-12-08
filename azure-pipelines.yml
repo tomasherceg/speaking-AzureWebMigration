@@ -1,0 +1,90 @@
+# Deploy to Azure Kubernetes Service
+# Build and push image to Azure Container Registry; Deploy to Azure Kubernetes Service
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+trigger:
+- master
+
+resources:
+- repo: self
+
+variables:
+
+  # Container registry service connection established during pipeline creation
+  dockerRegistryServiceConnection: '550e4a49-dcc4-43c1-af67-7517ed7831be'
+  containerRegistry: 'galleryazmregistry.azurecr.io'
+  tag: '$(Build.BuildId)'
+  imagePullSecret: 'galleryazmregistry3c41-auth'
+
+  # Agent VM image name
+  vmImageName: 'ubuntu-latest'
+
+stages:
+- stage: Build
+  displayName: Build stage
+  jobs:  
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: DockerCompose@0
+      inputs:
+        containerregistrytype: 'Azure Container Registry'
+        azureSubscription: 'Subscription 19(9abaf1c6-8cde-4160-b241-5275c07c9ada)'
+        azureContainerRegistry: $(containerRegistry)
+        dockerComposeFile: 'src/PhotoGallery/docker-compose.yml'
+        dockerComposeCommand: 'build'
+        additionalImageTags: $(tag)
+        includeLatestTag: true
+        qualifyImageNames: true
+        action: 'Build services'
+    - task: DockerCompose@0
+      inputs:
+        containerregistrytype: 'Azure Container Registry'
+        azureSubscription: 'Subscription 19(9abaf1c6-8cde-4160-b241-5275c07c9ada)'
+        azureContainerRegistry: $(containerRegistry)
+        dockerComposeFile: 'src/PhotoGallery/docker-compose.yml'
+        dockerComposeCommand: 'push'
+        additionalImageTags: $(tag)
+        includeLatestTag: true
+        qualifyImageNames: true
+        action: 'Push services'
+    - task: PublishPipelineArtifact@1
+      inputs:
+        artifactName: 'manifests'
+        path: 'manifests'
+
+- stage: Deploy
+  displayName: Deploy stage
+  dependsOn: Build
+  jobs:
+  - deployment: Deploy
+    displayName: Deploy
+    pool:
+      vmImage: $(vmImageName)
+    environment: 'tomashercegspeakingAzureWebMigration.default'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: KubernetesManifest@0
+            displayName: Create imagePullSecret
+            inputs:
+              action: createSecret
+              secretName: $(imagePullSecret)
+              dockerRegistryEndpoint: $(dockerRegistryServiceConnection)
+              
+          - task: KubernetesManifest@0
+            displayName: Deploy to Kubernetes cluster
+            inputs:
+              action: deploy
+              manifests: |
+                $(Pipeline.Workspace)/manifests/deployment.yml
+                $(Pipeline.Workspace)/manifests/service.yml
+              imagePullSecrets: |
+                $(imagePullSecret)
+              containers: |
+                $(containerRegistry)/photogalleryapp:$(tag)
+                $(containerRegistry)/photogalleryworker:$(tag)
+
