@@ -12,7 +12,7 @@
  	
     <div class="container">
         <div class="jumbotron">
-            <h1><dot:RouteLink RouteName="Default">Photo Gallery</dot:RouteLink></h1>
+            <h1><dot:RouteLink RouteName="Default" style="color: red">Photo Gallery</dot:RouteLink></h1>
         </div>
 
         <dot:ContentPlaceHolder ID="MainContent" />
